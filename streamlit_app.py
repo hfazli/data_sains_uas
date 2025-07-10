@@ -6,7 +6,7 @@ import joblib
 import os
 
 # ======== Konfigurasi Path Model ========
-MODEL_PATH = "../model/recruitment_model.pkl"
+MODEL_PATH = "recruitment_model.joblib"  # ⬅️ Ubah ke file di root folder
 
 # ======== Load Model ========
 @st.cache_resource
@@ -25,7 +25,7 @@ st.write("Masukkan informasi kandidat untuk memprediksi apakah mereka akan diter
 # ======== Form Input User ========
 with st.form("form_prediksi"):
     city = st.selectbox("Lokasi Kandidat", ["city_1", "city_2", "city_3"], index=0)
-    city_development_index = st.slider("City Development Index (0.0 - 1.0)", 0.0, 1.0, 0.5)  # ✅ Tambahan penting
+    city_development_index = st.slider("City Development Index (0.0 - 1.0)", 0.0, 1.0, 0.5)
     gender = st.selectbox("Jenis Kelamin", ["Male", "Female", "Other"])
     relevent_experience = st.selectbox("Pengalaman Relevan", ["Has relevent experience", "No relevent experience"])
     enrolled_university = st.selectbox("Status Kuliah", ["no_enrollment", "Full time course", "Part time course"])
@@ -59,7 +59,7 @@ if submitted:
 
     input_data = np.array([[  
         manual_encode["city"][city],
-        city_development_index,  # ✅ fitur numerik, tidak perlu encoding
+        city_development_index,
         manual_encode["gender"][gender],
         manual_encode["relevent_experience"][relevent_experience],
         manual_encode["enrolled_university"][enrolled_university],
