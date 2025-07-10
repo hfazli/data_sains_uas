@@ -1,14 +1,14 @@
 import pandas as pd
 import os
 import joblib
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 
 # ======== Konfigurasi Path ========
 DATA_PATH = "dataset/aug_train.csv"
-MODEL_PATH = "../model/recruitment_model.pkl"
+MODEL_PATH = "recruitment_model.joblib"  # Simpan langsung di root folder
 
 def load_and_preprocess_data():
     # Load dataset
@@ -40,15 +40,29 @@ def load_and_preprocess_data():
 
     return train_test_split(X, y, test_size=0.2, random_state=42)
 
-def train_model(X_train, y_train):
-    model = RandomForestClassifier(random_state=42)
-    model.fit(X_train, y_train)
-    return model
+def train_model_with_grid_search(X_train, y_train):
+    param_grid = {
+        'n_estimators': [100, 150],
+        'max_depth': [None, 10, 20],
+        'min_samples_split': [2, 5],
+    }
 
-def save_model(model, path=MODEL_PATH):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    joblib.dump(model, path)
-    print(f"✅ Model berhasil disimpan di: {path}")
+    grid_search = GridSearchCV(
+        estimator=RandomForestClassifier(random_state=42),
+        param_grid=param_grid,
+        cv=3,
+        n_jobs=-1,
+        verbose=1
+    )
+
+    grid_search.fit(X_train, y_train)
+    print(f"✅ Model terbaik: {grid_search.best_params_}")
+
+    # Simpan model terbaik ke root folder
+    joblib.dump(grid_search.best_estimator_, MODEL_PATH)
+    print(f"📦 Model terbaik berhasil disimpan di: {MODEL_PATH}")
+
+    return grid_search.best_estimator_
 
 def evaluate_model(model, X_test, y_test):
     y_pred = model.predict(X_test)
@@ -59,11 +73,9 @@ if __name__ == "__main__":
     print("🚀 Memuat dan memproses data...")
     X_train, X_test, y_train, y_test = load_and_preprocess_data()
 
-    print("🔧 Melatih model...")
-    model = train_model(X_train, y_train)
-
-    print("📦 Menyimpan model...")
-    save_model(model)
+    print("🔧 Melatih model dengan GridSearchCV...")
+    model = train_model_with_grid_search(X_train, y_train)
 
     print("📊 Evaluasi model...")
     evaluate_model(model, X_test, y_test)
+    
